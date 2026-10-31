@@ -24,6 +24,11 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - uses: actions/cache@v4
+        with:
+          path: node_modules/.astro
+          key: astro-assets-${{ hashFiles('src/assets/**', 'src/components/Photo.astro') }}
+          restore-keys: astro-assets-
       - name: Build
         run: npm run build
         env:
