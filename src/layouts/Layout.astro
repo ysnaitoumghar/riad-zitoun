@@ -1,0 +1,92 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import { getImage } from 'astro:assets';
+import '@fontsource/cormorant-garamond/latin-500.css';
+import '@fontsource/cormorant-garamond/latin-ext-500.css';
+import '@fontsource/cormorant-garamond/latin-600.css';
+import '@fontsource-variable/inter/wght.css';
+import '@fontsource/ibm-plex-sans-arabic/arabic-400.css';
+import '@fontsource/ibm-plex-sans-arabic/arabic-500.css';
+import '@fontsource/ibm-plex-sans-arabic/arabic-600.css';
+import '@fontsource/noto-naskh-arabic/arabic-500.css';
+import '@fontsource/noto-naskh-arabic/arabic-600.css';
+import '../styles/global.css';
+import { site } from '../config/site';
+import { theme } from '../config/theme.mjs';
+import { ui } from '../i18n/ui';
+import { dir, href, langs, pageUrl, tr, type Lang } from '../lib/l10n';
+import { photo } from '../lib/photos';
+import Header from '../components/Header.astro';
+import StickyBar from '../components/StickyBar.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  lang: Lang;
+  title: string;
+  description: string;
+  /** page path under /{lang}/ for hreflang and the language switcher, e.g. "location/" */
+  path?: string;
+  /** transparent header over a full-screen hero */
+  overlay?: boolean;
+  /** pre-filled WhatsApp message for the sticky bar */
+  waText?: string;
+  ogPhoto?: string;
+}
+const { lang, title, description, path = '', overlay = false, waText, ogPhoto = 'courtyard' } = Astro.props;
+const t = ui[lang];
+
+const css = Object.entries(theme).map(([k, v]) => `--c-${k}:${v}`).join(';');
+const og = await getImage({ src: photo(ogPhoto), width: 1200, height: 630, format: 'jpeg', quality: 75 });
+const origin = Astro.site ? Astro.site.origin : '';
+const canonical = origin + pageUrl(lang, path);
+const fullTitle = `${title} | ${site.name}`;
+const viewerStrings = JSON.stringify({ close: t.viewer.close, prev: t.viewer.prev, next: t.viewer.next, hint: t.viewer.hint, label: t.viewer.open });
+---
+<!doctype html>
+<html lang={lang} dir={dir(lang)} class="js" style={css}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content={site.themeColor} />
+    <link rel="canonical" href={canonical} />
+    {langs.map((l) => <link rel="alternate" hreflang={l} href={origin + pageUrl(l, path)} />)}
+    <link rel="alternate" hreflang="x-default" href={origin + pageUrl(site.defaultLang, path)} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={origin + og.src} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href={href('/icons/icon-192.png')} type="image/png" />
+    <link rel="apple-touch-icon" href={href('/icons/apple-touch-icon.png')} />
+    <link rel="manifest" href={href('/manifest.webmanifest')} />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content={site.name} />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- If the main script fails for any reason, reveal everything after 3s rather than leave blank sections -->
+    <script is:inline>
+      setTimeout(function () { if (!window.__rv) document.documentElement.classList.add('no-reveal'); }, 3000);
+    </script>
+    <noscript><style>html.js [data-reveal]{opacity:1!important;transform:none!important}</style></noscript>
+    <ClientRouter />
+  </head>
+  <body data-viewer={viewerStrings} data-lang={lang}>
+    <a class="skip" href="#main">{t.nav.skip}</a>
+    <Header lang={lang} path={path} overlay={overlay} />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer lang={lang} />
+    <StickyBar lang={lang} text={waText} />
+    <script>
+      import '../scripts/app';
+    </script>
+  </body>
+</html>

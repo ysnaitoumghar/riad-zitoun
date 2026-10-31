@@ -1,0 +1,85 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import Photo from '../../../components/Photo.astro';
+import RoomCard from '../../../components/RoomCard.astro';
+import Booking from '../../../components/Booking.astro';
+import Icon from '../../../components/Icon.astro';
+import { site } from '../../../config/site';
+import { rooms } from '../../../config/rooms';
+import { ui } from '../../../i18n/ui';
+import { langs, money, pageUrl, tr, type Lang } from '../../../lib/l10n';
+import { waLink } from '../../../lib/whatsapp';
+
+export function getStaticPaths() {
+  return langs.flatMap((lang) => rooms.map((room) => ({ params: { lang, slug: room.slug } })));
+}
+const lang = Astro.params.lang as Lang;
+const room = rooms.find((r) => r.slug === Astro.params.slug)!;
+const others = rooms.filter((r) => r.slug !== room.slug);
+const t = ui[lang];
+const name = tr(room.name, lang);
+---
+<Layout
+  lang={lang}
+  title={name}
+  description={tr(room.summary, lang)}
+  path={`rooms/${room.slug}/`}
+  waText={t.generic.roomMsg(site.name, name)}
+  ogPhoto={room.photos[0]}
+>
+  <div style="padding-top:calc(var(--header-h) + var(--safe-t) + 8px)">
+    <div class="wrap">
+      <a href={`${pageUrl(lang)}#rooms`} class="inline-flex items-center gap-2" style="min-height:48px;text-decoration:none;font-size:.9375rem">
+        <span class="back-arrow"><Icon name="arrow" size={18} /></span>
+        {t.room.back}
+      </a>
+      <h1 class="font-display h1" style="margin:8px 0 24px;font-size:clamp(2.5rem,10vw,4.5rem)">{name}</h1>
+    </div>
+
+    <!-- Gallery: swipe row on phones, three columns on larger screens. Tap a photo to open the viewer. -->
+    <div class="wrap-md">
+      <div class="snap-row snap-md-grid md:grid-cols-3 md:gap-4" data-carousel data-gallery>
+        {room.photos.map((p, i) => (
+          <div class="media aspect-[4/5] w-[86%] max-w-[440px] md:max-w-none" transition:name={i === 0 ? `room-${room.slug}` : undefined}>
+            <button type="button" data-viewer aria-label={t.viewer.open}>
+              <Photo name={p} alt={tr(room.alt[i], lang)} full eager={i === 0} sizes="(min-width:768px) 380px, 86vw" widths={[480, 720, 960]} />
+            </button>
+          </div>
+        ))}
+      </div>
+      <div class="dots md-hide" data-dots></div>
+    </div>
+
+    <section class="section-tight wrap grid gap-12 md:grid-cols-[1.2fr_1fr] md:gap-20 items-start" style="padding-top:40px">
+      <div>
+        <dl class="facts" style="grid-template-columns:repeat(3,minmax(0,1fr))" data-reveal>
+          <div><dt>{room.size} m²</dt><dd>{t.room.size}</dd></div>
+          <div><dt>{room.maxGuests}</dt><dd>{t.room.guests}</dd></div>
+          <div><dt>{money(room.priceMAD, lang)}</dt><dd>{t.cta.perNight}</dd></div>
+        </dl>
+        <p class="lead" style="margin:32px 0 0" data-reveal>{tr(room.description, lang)}</p>
+
+        <h2 class="font-display h3" style="margin:40px 0 16px" data-reveal>{t.room.bed}</h2>
+        <p style="margin:0" data-reveal>{tr(room.bed, lang)}. {t.room.breakfast}.</p>
+
+        <h2 class="font-display h3" style="margin:40px 0 16px" data-reveal>{t.room.amenities}</h2>
+        <ul class="check-list grid-cols-1 sm:grid-cols-2" style="display:grid;gap:12px 24px" data-reveal>
+          {room.amenities.map((a) => <li><Icon name="check" size={18} /><span>{t.amenities[a]}</span></li>)}
+        </ul>
+      </div>
+      <div class="md:sticky" style="top:calc(var(--header-h) + 24px)" data-reveal>
+        <Booking lang={lang} roomSlug={room.slug} id="booking-room" />
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:24px">
+      <div class="wrap section-head"><h2 class="font-display h2" style="margin:0;font-size:clamp(2rem,8vw,3rem)">{t.room.otherRooms}</h2></div>
+      <div class="wrap-md">
+        <div class="snap-row snap-md-grid md:grid-cols-2 md:gap-6" data-carousel>
+          {others.map((r) => <RoomCard room={r} lang={lang} class="w-[80%] max-w-[340px] md:max-w-none" />)}
+        </div>
+        <div class="dots md-hide" data-dots></div>
+      </div>
+    </section>
+  </div>
+</Layout>

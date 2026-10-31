@@ -1,0 +1,21 @@
+---
+import { site } from '../config/site';
+import { ui } from '../i18n/ui';
+import { waLink } from '../lib/whatsapp';
+import type { Lang } from '../lib/l10n';
+import Icon from './Icon.astro';
+
+interface Props { lang: Lang; text?: string }
+const { lang, text } = Astro.props;
+const t = ui[lang];
+const link = waLink(text ?? t.generic.whatsappMsg(site.name));
+---
+<!-- Mobile: fixed bar above the home indicator. Desktop: floating button. -->
+<div class="bar" data-bar transition:name="wa-bar">
+  <a class="btn btn-primary" href={link} target="_blank" rel="noopener" data-wa>
+    <Icon name="chat" size={22} />{t.cta.whatsapp}
+  </a>
+</div>
+<a class="btn btn-primary fab" href={link} target="_blank" rel="noopener" data-wa transition:name="wa-fab">
+  <Icon name="chat" size={22} />{t.cta.whatsapp}
+</a>

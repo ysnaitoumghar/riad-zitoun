@@ -1,0 +1,248 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Photo from '../../components/Photo.astro';
+import RoomCard from '../../components/RoomCard.astro';
+import Booking from '../../components/Booking.astro';
+import Icon from '../../components/Icon.astro';
+import Stars from '../../components/Stars.astro';
+import { site } from '../../config/site';
+import { rooms } from '../../config/rooms';
+import { experiences } from '../../config/experiences';
+import { reviews, reviewsAreSample } from '../../config/reviews';
+import { hero, intro, features, location, faq } from '../../config/content';
+import { ui } from '../../i18n/ui';
+import { langs, money, pageUrl, tr, type Lang } from '../../lib/l10n';
+import { waLink } from '../../lib/whatsapp';
+
+export function getStaticPaths() {
+  return langs.map((lang) => ({ params: { lang } }));
+}
+const lang = Astro.params.lang as Lang;
+const t = ui[lang];
+const minPrice = Math.min(...rooms.map((r) => r.priceMAD));
+---
+<Layout lang={lang} title={t.meta.homeTitle} description={t.meta.homeDesc} overlay>
+  <!-- Hero -->
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-media">
+      <div class="parallax" data-parallax="0.06">
+        <Photo name={hero.photo} alt={tr(hero.alt, lang)} eager sizes="100vw" widths={[640, 960, 1440, 1920]} position="50% 55%" imgClass="hero-img" />
+      </div>
+    </div>
+    <div class="hero-shade"></div>
+    <div class="wrap hero-body">
+      <h1 id="hero-title" class="font-display h1" style="margin:0">
+        {tr(hero.lines, lang).map((line, i) => <span class="line"><span style={`--i:${i}`}>{line}</span></span>)}
+      </h1>
+      <p class="hero-fade lead" style="color:rgb(255 255 255 / .92);margin:20px 0 0;max-width:34ch">{tr(hero.sub, lang)}</p>
+      <div class="hero-fade flex flex-col sm:flex-row gap-3" style="margin-top:28px">
+        <a class="btn btn-light" href="#booking">{t.cta.book}</a>
+        <a class="btn btn-outline-light" href="#rooms">{t.cta.seeRooms}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Intro -->
+  <section class="section" id="intro">
+    <div class="wrap grid gap-12 md:grid-cols-2 md:gap-20 items-start">
+      <div data-reveal>
+        <h2 class="font-display h2" style="margin:0">{tr(intro.title, lang)}</h2>
+      </div>
+      <div data-reveal style="--d:120ms">
+        <p class="lead" style="margin:0">{tr(intro.text, lang)}</p>
+        <dl class="facts" style="margin-top:36px">
+          {intro.facts.map((f) => <div><dt>{f.value}</dt><dd>{tr(f.label, lang)}</dd></div>)}
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- Rooms -->
+  <section class="section" id="rooms" style="padding-top:0">
+    <div class="wrap section-head" data-reveal>
+      <h2 class="font-display h2" style="margin:0">{t.sections.rooms.title}</h2>
+      <p class="lead" style="margin:0">{t.sections.rooms.sub}</p>
+    </div>
+    <div class="wrap-md">
+      <div class="snap-row snap-md-grid md:grid-cols-3 md:gap-6" data-carousel data-stagger>
+        {rooms.map((r) => <RoomCard room={r} lang={lang} class="w-[80%] max-w-[340px] md:max-w-none" />)}
+      </div>
+      <div class="dots md-hide" data-dots></div>
+    </div>
+  </section>
+
+  <!-- The riad -->
+  <section class="section" id="riad" style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 class="font-display h2" style="margin:0">{t.sections.riad.title}</h2>
+        <p class="lead" style="margin:0">{t.sections.riad.sub}</p>
+      </div>
+      <div class="grid gap-12 md:grid-cols-2 md:gap-x-8 md:gap-y-14" data-gallery>
+        {features.map((f, i) => (
+          <article data-reveal>
+            <div class="media aspect-[4/3]">
+              <div class="parallax" data-parallax="0.05">
+                <button type="button" data-viewer aria-label={t.viewer.open}>
+                  <Photo name={f.photo} alt={tr(f.alt, lang)} full sizes="(min-width:768px) 560px, 100vw" widths={[480, 800, 1200]} position={f.position} />
+                </button>
+              </div>
+            </div>
+            <h3 class="font-display h3" style="margin:20px 0 8px">{tr(f.title, lang)}</h3>
+            <p class="muted" style="margin:0;max-width:52ch">{tr(f.text, lang)}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Booking -->
+  <section class="section dark-band" id="booking">
+    <div class="wrap grid gap-10 md:grid-cols-2 md:gap-20 items-start">
+      <div data-reveal>
+        <h2 class="font-display h2" style="margin:0">{t.sections.booking.title}</h2>
+        <p class="muted" style="margin:16px 0 0;max-width:46ch;font-size:1.0625rem">{t.sections.booking.sub}</p>
+        <ul class="check-list" style="margin-top:28px;color:rgb(var(--c-paper))">
+          <li><Icon name="check" size={20} /><span>{t.booking.breakfastIncluded}</span></li>
+          <li><Icon name="clock" size={20} /><span>{site.checkIn} / {site.checkOut}</span></li>
+          <li><Icon name="chat" size={20} /><span>{t.contact.hoursValue}</span></li>
+        </ul>
+      </div>
+      <div data-reveal style="--d:120ms" class="booking-card">
+        <Booking lang={lang} id="booking-panel" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Experiences -->
+  <section class="section" id="experiences">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <h2 class="font-display h2" style="margin:0">{t.sections.experiences.title}</h2>
+        <p class="lead" style="margin:0">{t.sections.experiences.sub}</p>
+      </div>
+      <div class="grid gap-4 md:grid-cols-2 md:gap-6 items-start" data-stagger>
+        {experiences.map((e) => (
+          <article class="card overflow-hidden" data-reveal>
+            <button type="button" class="exp-btn" data-collapse={`exp-${e.id}`} aria-expanded="false" aria-controls={`exp-${e.id}`}>
+              <div class="media aspect-[16/10]" style="border-radius:0">
+                <Photo name={e.photo} alt={tr(e.alt, lang)} sizes="(min-width:768px) 560px, 100vw" widths={[480, 800, 1200]} />
+              </div>
+              <div class="flex items-start justify-between gap-4" style="padding:20px">
+                <div>
+                  <h3 class="font-display h3" style="margin:0">{tr(e.title, lang)}</h3>
+                  <p class="muted" style="margin:8px 0 0;font-size:.9375rem">{tr(e.short, lang)}</p>
+                </div>
+                <span class="chev" style="margin-top:6px;color:rgb(var(--c-accent))"><Icon name="chevron" /></span>
+              </div>
+            </button>
+            <div class="collapse" id={`exp-${e.id}`} data-open="false" inert>
+              <div>
+                <div style="padding:0 20px 20px">
+                  <hr class="hr" style="margin-bottom:20px" />
+                  <ul class="check-list">
+                    {tr(e.details, lang).map((d) => <li><Icon name="check" size={18} /><span>{d}</span></li>)}
+                  </ul>
+                  <p style="margin:20px 0 0;font-weight:500">{tr(e.price, lang)}</p>
+                  <a class="btn btn-primary" style="width:100%;margin-top:16px" href={waLink(t.generic.expMsg(site.name, tr(e.title, lang)))} target="_blank" rel="noopener">
+                    <Icon name="chat" />{t.cta.askWhatsapp}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Location summary -->
+  <section class="section" id="location" style="padding-top:0">
+    <div class="wrap grid gap-10 md:grid-cols-2 md:gap-20 items-center">
+      <div class="media aspect-[4/3]" data-reveal>
+        <div class="parallax" data-parallax="0.05">
+          <Photo name="medina" alt={tr(experiences[3].alt, lang)} sizes="(min-width:768px) 560px, 100vw" widths={[480, 800, 1200]} />
+        </div>
+      </div>
+      <div data-reveal style="--d:120ms">
+        <h2 class="font-display h2" style="margin:0">{t.sections.location.title}</h2>
+        <p class="lead" style="margin:16px 0 0">{tr(location.intro, lang)}</p>
+        <dl style="margin:24px 0 0;display:grid;gap:0">
+          {location.distances.slice(0, 3).map((d) => (
+            <div class="flex justify-between gap-4" style="padding:12px 0;border-bottom:1px solid rgb(var(--c-stone))">
+              <dt>{tr(d.place, lang)}</dt><dd class="muted" style="margin:0;text-align:end">{tr(d.value, lang)}</dd>
+            </div>
+          ))}
+        </dl>
+        <a class="btn btn-ghost" style="margin-top:24px" href={pageUrl(lang, 'location/')}>
+          <Icon name="pin" />{t.location.directions}
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reviews -->
+  <section class="section dark-band" id="reviews">
+    <div class="wrap section-head" data-reveal>
+      <h2 class="font-display h2" style="margin:0">{t.sections.reviews.title}</h2>
+      {reviewsAreSample && <p class="muted" style="margin:0;font-size:.9375rem">{t.reviews.sample}</p>}
+    </div>
+    <div class="wrap-md">
+      <div class="snap-row snap-md-grid md:grid-cols-3 md:gap-6" data-carousel>
+        {reviews.map((r) => (
+          <figure class="w-[85%] max-w-[380px] md:max-w-none" style="margin:0;padding:24px;border:1px solid rgb(var(--c-paper) / .18);border-radius:var(--r)">
+            <Stars n={r.rating} label={t.reviews.rating(r.rating)} />
+            <blockquote style="margin:16px 0 0;font-size:1.0625rem;line-height:1.6">{tr(r.text, lang)}</blockquote>
+            <figcaption class="muted" style="margin-top:20px;font-size:.9375rem">
+              <strong style="color:rgb(var(--c-paper));font-weight:500">{r.name}</strong>, {tr(r.from, lang)}<br />{tr(r.stay, lang)}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+      <div class="dots md-hide" data-dots></div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section" id="faq">
+    <div class="wrap grid gap-8 md:grid-cols-[1fr_1.4fr] md:gap-20 items-start">
+      <h2 class="font-display h2" style="margin:0" data-reveal>{t.sections.faq.title}</h2>
+      <div data-reveal style="--d:100ms">
+        {faq.map((f, i) => (
+          <div style="border-bottom:1px solid rgb(var(--c-stone))" class:list={[i === 0 && 'faq-first']}>
+            <button type="button" class="acc-btn" data-collapse={`faq-${i}`} aria-expanded="false" aria-controls={`faq-${i}`} style="font-weight:500;font-size:1.0625rem">
+              <span>{tr(f.q, lang)}</span>
+              <span class="chev" style="color:rgb(var(--c-accent))"><Icon name="chevron" /></span>
+            </button>
+            <div class="collapse" id={`faq-${i}`} data-open="false" inert>
+              <div><p class="muted" style="margin:0 0 20px;max-width:60ch">{tr(f.a, lang)}</p></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="section" id="contact" style="padding-top:0">
+    <div class="wrap">
+      <div class="card" style="padding:28px" data-reveal>
+        <div class="grid gap-8 md:grid-cols-2 md:gap-16 items-start">
+          <div>
+            <h2 class="font-display h2" style="margin:0">{t.sections.contact.title}</h2>
+            <p class="lead" style="margin:16px 0 0">{t.sections.contact.sub}</p>
+            <a class="btn btn-primary" style="margin-top:24px;width:100%;max-width:360px" href={waLink(t.generic.whatsappMsg(site.name))} target="_blank" rel="noopener">
+              <Icon name="chat" />{t.cta.whatsapp}
+            </a>
+          </div>
+          <ul class="check-list" style="gap:0">
+            <li style="padding:14px 0;border-bottom:1px solid rgb(var(--c-stone))"><Icon name="phone" size={20} /><span><span class="muted" style="display:block;font-size:.875rem">{t.contact.phone}</span><a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a></span></li>
+            <li style="padding:14px 0;border-bottom:1px solid rgb(var(--c-stone))"><Icon name="mail" size={20} /><span style="min-width:0"><span class="muted" style="display:block;font-size:.875rem">{t.contact.email}</span><a href={`mailto:${site.email}`} style="overflow-wrap:anywhere">{site.email}</a></span></li>
+            <li style="padding:14px 0;border-bottom:1px solid rgb(var(--c-stone))"><Icon name="pin" size={20} /><span><span class="muted" style="display:block;font-size:.875rem">{t.contact.address}</span>{tr(site.address, lang)}</span></li>
+            <li style="padding:14px 0"><Icon name="clock" size={20} /><span><span class="muted" style="display:block;font-size:.875rem">{t.contact.hours}</span>{t.contact.hoursValue}</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

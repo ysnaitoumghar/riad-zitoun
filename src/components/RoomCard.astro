@@ -1,0 +1,25 @@
+---
+import { ui } from '../i18n/ui';
+import { money, pageUrl, tr, type Lang } from '../lib/l10n';
+import type { Room } from '../config/rooms';
+import Photo from './Photo.astro';
+import Icon from './Icon.astro';
+
+interface Props { room: Room; lang: Lang; class?: string }
+const { room, lang, class: cls = '' } = Astro.props;
+const t = ui[lang];
+---
+<a href={pageUrl(lang, `rooms/${room.slug}/`)} class={`card block no-underline overflow-hidden ${cls}`} style="text-decoration:none">
+  <!-- Shared element: same transition name as the first photo on the room page -->
+  <div class="media aspect-[4/5]" style="border-radius:0" transition:name={`room-${room.slug}`}>
+    <Photo name={room.photos[0]} alt={tr(room.alt[0], lang)} sizes="(min-width:768px) 380px, 80vw" widths={[480, 720, 960]} />
+  </div>
+  <div class="p-5">
+    <h3 class="font-display h3" style="margin:0">{tr(room.name, lang)}</h3>
+    <p class="muted" style="margin:8px 0 0;font-size:.9375rem">{tr(room.summary, lang)}</p>
+    <div class="flex items-center justify-between gap-3" style="margin-top:16px;min-height:44px">
+      <p style="margin:0"><span class="muted" style="font-size:.875rem">{t.cta.fromPrice}</span> <strong style="font-weight:600">{money(room.priceMAD, lang)}</strong> <span class="muted" style="font-size:.875rem">/ {t.cta.perNight.split(' ').pop()}</span></p>
+      <span aria-hidden="true" class="rtl-flip" style="color:rgb(var(--c-accent))"><Icon name="arrow" /></span>
+    </div>
+  </div>
+</a>

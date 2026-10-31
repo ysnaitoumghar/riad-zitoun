@@ -1,0 +1,62 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Icon from '../../components/Icon.astro';
+import { site } from '../../config/site';
+import { location } from '../../config/content';
+import { ui } from '../../i18n/ui';
+import { langs, tr, type Lang } from '../../lib/l10n';
+import { waLink } from '../../lib/whatsapp';
+
+export function getStaticPaths() {
+  return langs.map((lang) => ({ params: { lang } }));
+}
+const lang = Astro.params.lang as Lang;
+const t = ui[lang];
+const { lat, lon, zoomSpan } = site.map;
+const bbox = [lon - zoomSpan, lat - zoomSpan * 0.7, lon + zoomSpan, lat + zoomSpan * 0.7].join('%2C');
+const embed = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lon}`;
+const osm = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}`;
+---
+<Layout lang={lang} title={t.meta.locationTitle} description={tr(location.intro, lang)} path="location/" ogPhoto="medina">
+  <div style="padding-top:calc(var(--header-h) + var(--safe-t) + 24px)" class="section" >
+    <div class="wrap">
+      <h1 class="font-display h1" style="margin:0 0 20px;font-size:clamp(2.5rem,10vw,4.5rem)">{t.sections.location.title}</h1>
+      <p class="lead" style="margin:0 0 40px">{tr(location.intro, lang)}</p>
+
+      <div class="grid gap-10 md:grid-cols-[1.3fr_1fr] md:gap-16 items-start">
+        <div data-reveal>
+          <div class="map-frame">
+            <iframe src={embed} title={t.location.mapLabel} loading="lazy" referrerpolicy="no-referrer" style="pointer-events:none" data-map></iframe>
+            <button type="button" class="map-veil" data-map-veil aria-label={t.location.mapActivate}><span>{t.location.mapActivate}</span></button>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3" style="margin-top:16px">
+            <a class="btn btn-ghost" href={osm} target="_blank" rel="noopener"><Icon name="pin" />{t.cta.openMap}</a>
+            <a class="btn btn-primary" href={waLink(t.generic.whatsappMsg(site.name))} target="_blank" rel="noopener"><Icon name="chat" />{t.cta.whatsapp}</a>
+          </div>
+          <p class="muted" style="margin:16px 0 0;font-size:.9375rem"><strong style="font-weight:500;color:rgb(var(--c-ink))">{t.location.address}:</strong> {tr(site.address, lang)}</p>
+        </div>
+
+        <div data-reveal style="--d:100ms">
+          <h2 class="font-display h3" style="margin:0 0 12px">{t.location.distances}</h2>
+          <dl style="margin:0 0 40px">
+            {location.distances.map((d) => (
+              <div class="flex justify-between gap-4" style="padding:14px 0;border-bottom:1px solid rgb(var(--c-stone))">
+                <dt>{tr(d.place, lang)}</dt><dd class="muted" style="margin:0;text-align:end">{tr(d.value, lang)}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <h2 class="font-display h3" style="margin:0 0 16px">{t.location.directions}</h2>
+          <ol style="list-style:none;margin:0;padding:0;display:grid;gap:18px;counter-reset:step">
+            {tr(location.steps, lang).map((s, i) => (
+              <li style="display:grid;grid-template-columns:36px 1fr;gap:14px;align-items:start">
+                <span style="width:36px;height:36px;border-radius:99px;border:1px solid rgb(var(--c-accent));color:rgb(var(--c-accent));display:grid;place-items:center;font-weight:500;font-variant-numeric:tabular-nums">{i + 1}</span>
+                <span style="padding-top:5px">{s}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

@@ -1,0 +1,37 @@
+---
+import { Picture, getImage } from 'astro:assets';
+import { photo } from '../lib/photos';
+
+interface Props {
+  name: string;
+  alt: string;
+  sizes?: string;
+  widths?: number[];
+  eager?: boolean;
+  /** CSS object-position, e.g. "50% 80%" */
+  position?: string;
+  /** adds a large version for the fullscreen viewer */
+  full?: boolean;
+  class?: string;
+  imgClass?: string;
+}
+const { name, alt, sizes = '100vw', widths = [480, 800, 1200], eager = false, position, full = false, class: cls, imgClass } = Astro.props;
+const src = photo(name);
+const fullUrl = full ? (await getImage({ src, width: 1600, format: 'webp', quality: 75 })).src : undefined;
+---
+<Picture
+  src={src}
+  alt={alt}
+  widths={widths}
+  sizes={sizes}
+  formats={['avif', 'webp']}
+  fallbackFormat="jpeg"
+  quality={68}
+  loading={eager ? 'eager' : 'lazy'}
+  decoding={eager ? 'sync' : 'async'}
+  fetchpriority={eager ? 'high' : 'auto'}
+  class={imgClass}
+  data-full={fullUrl}
+  style={position ? `object-position:${position}` : undefined}
+  pictureAttributes={{ class: cls ?? '' }}
+/>

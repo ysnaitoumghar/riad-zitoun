@@ -1,0 +1,17 @@
+---
+import { site } from '../config/site';
+import { ui } from '../i18n/ui';
+import { tr, type Lang } from '../lib/l10n';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui[lang];
+---
+<footer class="dark-band page-end">
+  <div class="wrap" style="padding-block:48px">
+    <p class="font-display h3" style="margin:0">{site.name}</p>
+    <p class="muted" style="margin:8px 0 0">{tr(site.tagline, lang)}</p>
+    <p class="muted" style="margin:24px 0 0;font-size:.9375rem">{t.footer.rights} {t.footer.demo}</p>
+    <p class="muted" style="margin:8px 0 0;font-size:.9375rem">{t.footer.photos}: {site.photoCredit}</p>
+  </div>
+</footer>

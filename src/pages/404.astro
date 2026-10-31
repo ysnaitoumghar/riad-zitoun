@@ -1,0 +1,17 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { ui } from '../i18n/ui';
+import { site } from '../config/site';
+import { pageUrl } from '../lib/l10n';
+const lang = site.defaultLang;
+const t = ui[lang].notFound;
+---
+<Layout lang={lang} title={t.title} description={t.text}>
+  <section class="section" style="padding-top:calc(var(--header-h) + var(--safe-t) + 64px);min-height:70dvh">
+    <div class="wrap">
+      <h1 class="font-display h1" style="margin:0 0 16px">{t.title}</h1>
+      <p class="lead" style="margin:0 0 32px">{t.text}</p>
+      <a class="btn btn-primary" href={pageUrl(lang)}>{t.home}</a>
+    </div>
+  </section>
+</Layout>

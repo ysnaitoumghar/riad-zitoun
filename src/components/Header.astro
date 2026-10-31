@@ -1,0 +1,54 @@
+---
+import { site } from '../config/site';
+import { ui } from '../i18n/ui';
+import { langs, langNames, langShort, pageUrl, type Lang } from '../lib/l10n';
+import Icon from './Icon.astro';
+
+interface Props { lang: Lang; path: string; overlay: boolean }
+const { lang, path, overlay } = Astro.props;
+const t = ui[lang];
+const home = pageUrl(lang);
+const items = [
+  { label: t.nav.rooms, href: `${home}#rooms` },
+  { label: t.nav.riad, href: `${home}#riad` },
+  { label: t.nav.experiences, href: `${home}#experiences` },
+  { label: t.nav.location, href: pageUrl(lang, 'location/') },
+  { label: t.nav.faq, href: `${home}#faq` },
+  { label: t.nav.contact, href: `${home}#contact` },
+];
+---
+<header class="hdr" data-header data-overlay={overlay ? 'true' : 'false'} data-solid={overlay ? 'false' : 'true'} transition:name="site-header">
+  <div class="wrap hdr-inner">
+    <a href={home} class="logo" aria-label={`${site.name}, ${t.nav.home}`}>
+      {site.logo.mark && (
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d={site.logo.mark} /></svg>
+      )}
+      <span>{site.logo.wordmark}</span>
+    </a>
+
+    <nav class="hidden min-[900px]:flex items-center" aria-label="Main">
+      {items.map((i) => <a class="nav-link" href={i.href}>{i.label}</a>)}
+      <div class="lang ms-3" role="group" aria-label={t.nav.language}>
+        {langs.map((l) => (
+          <a href={pageUrl(l, path)} hreflang={l} lang={l} aria-current={l === lang ? 'true' : undefined} data-astro-reload title={langNames[l]}>{langShort[l]}</a>
+        ))}
+      </div>
+    </nav>
+
+    <button type="button" class="icon-btn min-[900px]:hidden" data-menu-btn aria-expanded="false" aria-controls="menu" aria-label={t.nav.menu} style="margin-inline-end:-8px">
+      <span data-icon-open><Icon name="menu" size={26} /></span>
+      <span data-icon-close hidden><Icon name="close" size={26} /></span>
+    </button>
+  </div>
+</header>
+
+<div id="menu" class="menu-panel" data-menu data-open="false" aria-hidden="true">
+  <nav aria-label="Menu">
+    {items.map((i) => <a class="m-link" href={i.href}>{i.label}</a>)}
+  </nav>
+  <div class="lang mt-5 gap-1" role="group" aria-label={t.nav.language}>
+    {langs.map((l) => (
+      <a href={pageUrl(l, path)} hreflang={l} lang={l} aria-current={l === lang ? 'true' : undefined} data-astro-reload style="min-width:64px;font-size:1rem">{langNames[l]}</a>
+    ))}
+  </div>
+</div>

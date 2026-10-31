@@ -1,0 +1,76 @@
+---
+import { site } from '../config/site';
+import { rooms } from '../config/rooms';
+import { ui } from '../i18n/ui';
+import { locales, tr, type Lang } from '../lib/l10n';
+import { waLink } from '../lib/whatsapp';
+import Icon from './Icon.astro';
+
+interface Props { lang: Lang; roomSlug?: string; id?: string }
+const { lang, roomSlug, id = 'booking-panel' } = Astro.props;
+const t = ui[lang];
+const current = rooms.find((r) => r.slug === roomSlug) ?? rooms[0];
+
+// Everything the browser script needs, serialised once. Message templates are built per language here.
+const config = {
+  lang,
+  locale: locales[lang],
+  whatsapp: site.whatsapp,
+  name: site.name,
+  eurRate: site.currency.eurRate,
+  rooms: rooms.map((r) => ({ slug: r.slug, name: tr(r.name, lang), price: r.priceMAD, max: r.maxGuests })),
+  nightsLabels: Array.from({ length: 61 }, (_, n) => (n ? t.booking.nights(n) : '')),
+  guestsLabels: Array.from({ length: 9 }, (_, n) => (n ? t.booking.guestsN(n) : '')),
+  tpl: t.booking.msg({ name: '{name}', room: '{room}', from: '{from}', to: '{to}', nightsLabel: '{nights}', guestsLabel: '{guests}', total: '{total}' }),
+  tplNoDates: t.generic.roomMsg('{name}', '{room}'),
+  labels: { pickDates: t.booking.pickDates, total: t.booking.total, approx: t.booking.approx },
+};
+const fallbackHref = waLink(t.generic.roomMsg(site.name, tr(current.name, lang)));
+---
+<form class="card" style="padding:20px" data-booking data-config={JSON.stringify(config)} id={id} novalidate>
+  <h3 class="font-display h3" style="margin:0 0 20px">{t.booking.title}</h3>
+
+  <div class="grid grid-cols-2 gap-3">
+    <label class="field">
+      <span>{t.booking.checkIn}</span>
+      <input class="input" type="date" name="in" data-in required />
+    </label>
+    <label class="field">
+      <span>{t.booking.checkOut}</span>
+      <input class="input" type="date" name="out" data-out required />
+    </label>
+  </div>
+
+  <label class="field" style="margin-top:12px">
+    <span>{t.booking.room}</span>
+    <select class="input" name="room" data-room>
+      {rooms.map((r) => <option value={r.slug} selected={r.slug === current.slug}>{tr(r.name, lang)}, {r.priceMAD} MAD</option>)}
+    </select>
+  </label>
+
+  <div class="field" style="margin-top:12px">
+    <span id={`${id}-g`}>{t.booking.guests}</span>
+    <div class="stepper" role="group" aria-labelledby={`${id}-g`}>
+      <button type="button" data-minus aria-label={t.booking.minusGuest}><Icon name="minus" /></button>
+      <output data-guests aria-live="polite">2</output>
+      <button type="button" data-plus aria-label={t.booking.plusGuest}><Icon name="plus" /></button>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgb(var(--c-stone))" aria-live="polite" data-summary>
+    <p class="muted" style="margin:0" data-hint>{t.booking.pickDates}</p>
+    <dl data-result hidden style="margin:0;display:grid;gap:6px">
+      <div class="flex justify-between gap-4"><dt class="muted" data-nights-label></dt><dd style="margin:0" data-per-night></dd></div>
+      <div class="flex justify-between items-baseline gap-4" style="margin-top:6px">
+        <dt style="font-weight:500">{t.booking.total}</dt>
+        <dd style="margin:0;text-align:end"><strong class="font-display" style="font-size:1.75rem;font-weight:600;line-height:1.1" data-total-mad></strong><br /><span class="muted" style="font-size:.9375rem"><span>{t.booking.approx}</span> <span data-total-eur></span></span></dd>
+      </div>
+    </dl>
+    <p class="muted" style="margin:10px 0 0;font-size:.875rem">{t.booking.breakfastIncluded}</p>
+  </div>
+
+  <a class="btn btn-primary" style="width:100%;margin-top:16px;min-height:52px" href={fallbackHref} target="_blank" rel="noopener" data-send>
+    <Icon name="chat" />{t.cta.whatsapp}
+  </a>
+  <p class="muted" style="margin:10px 0 0;font-size:.875rem;text-align:center">{t.booking.opens}</p>
+</form>
