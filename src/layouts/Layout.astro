@@ -77,7 +77,7 @@ const viewerStrings = JSON.stringify({ close: t.viewer.close, prev: t.viewer.pre
     <noscript><style>html.js [data-reveal]{opacity:1!important;transform:none!important}</style></noscript>
     <ClientRouter />
   </head>
-  <body data-viewer={viewerStrings} data-lang={lang}>
+  <body data-viewer-strings={viewerStrings} data-lang={lang}>
     <a class="skip" href="#main">{t.nav.skip}</a>
     <Header lang={lang} path={path} overlay={overlay} />
     <main id="main">

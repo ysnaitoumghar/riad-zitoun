@@ -18,16 +18,22 @@ export function initViewer() {
   if (installed) return;
   installed = true;
   document.addEventListener('click', (e) => {
-    const trigger = (e.target as Element).closest<HTMLElement>('[data-viewer]');
-    if (!trigger || current) return;
-    const scope = trigger.closest<HTMLElement>('[data-gallery]') ?? document.body;
-    const triggers = Array.from(scope.querySelectorAll<HTMLElement>('[data-viewer]'));
+    if (current || !(e.target instanceof Element)) return;
+    // Only a <button data-viewer> that contains a photo and sits inside a [data-gallery] opens the viewer.
+    const trigger = e.target.closest<HTMLElement>('button[data-viewer]');
+    if (!trigger || !trigger.querySelector('img')) return;
+    const scope = trigger.closest<HTMLElement>('[data-gallery]');
+    if (!scope) return;
+    const triggers = Array.from(scope.querySelectorAll<HTMLElement>('button[data-viewer]')).filter((t) => t.querySelector('img'));
+    const index = triggers.indexOf(trigger);
+    if (index < 0) return;
     const items: Item[] = triggers.map((t) => {
       const img = t.querySelector('img')!;
       return { thumb: img.currentSrc || img.src, full: img.dataset.full || img.currentSrc || img.src, alt: img.alt };
     });
-    const strings: Strings = JSON.parse(document.body.dataset.viewer || '{}');
-    current = new Viewer(items, triggers.indexOf(trigger), strings, trigger, () => (current = null));
+    let strings: Strings;
+    try { strings = JSON.parse(document.body.dataset.viewerStrings || '{}'); } catch { strings = {} as Strings; }
+    current = new Viewer(items, index, strings, trigger, () => (current = null));
   });
   // Leaving the page with the viewer open (back button, link) must not leave the scroll lock behind.
   document.addEventListener('astro:before-swap', () => current?.destroy());
@@ -90,7 +96,9 @@ class Viewer {
 
     document.body.appendChild(r);
     document.documentElement.style.overflow = 'hidden';
-    this.track.scrollTo({ left: this.index * this.track.clientWidth, behavior: 'instant' as ScrollBehavior });
+    this.track.style.scrollSnapType = 'none';
+    this.track.scrollLeft = this.index * this.track.clientWidth;
+    this.track.style.scrollSnapType = '';
     this.updateCount();
     this.loadAround();
     requestAnimationFrame(() => (r.dataset.open = 'true'));
