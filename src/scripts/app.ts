@@ -134,8 +134,23 @@ function initCollapse() {
     if (!panel) return;
     const open = btn.getAttribute('aria-expanded') !== 'true';
     btn.setAttribute('aria-expanded', String(open));
-    panel.dataset.open = String(open);
     if (open) panel.removeAttribute('inert'); else panel.setAttribute('inert', '');
+    // Animate an explicit pixel height (measured from the content), then release it to "auto"
+    // so the card always fits its content exactly and follows resizes / language fonts.
+    const done = () => { if (panel.dataset.open === 'true') panel.style.height = 'auto'; };
+    panel.ontransitionend = (ev) => { if (ev.target === panel && ev.propertyName === 'height') done(); };
+    if (open) {
+      panel.style.height = '0px';
+      panel.dataset.open = 'true';
+      void panel.offsetHeight;
+      panel.style.height = `${panel.scrollHeight}px`;
+      if (reduceMotion()) done(); else window.setTimeout(done, 520);
+    } else {
+      panel.style.height = `${panel.getBoundingClientRect().height}px`;
+      void panel.offsetHeight;
+      panel.dataset.open = 'false';
+      panel.style.height = '0px';
+    }
   });
 }
 
